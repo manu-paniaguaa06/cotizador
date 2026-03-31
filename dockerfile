@@ -1,19 +1,21 @@
-# Usamos la imagen oficial de Playwright que ya trae TODO instalado
+# Esta imagen de Microsoft ya trae TODAS las librerías que te faltan
 FROM mcr.microsoft.com/playwright/python:v1.49.0-jammy
 
-# Directorio de trabajo
 WORKDIR /app
 
-# Copiamos los requisitos e instalamos
+# Instalamos las librerías de Python
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copiamos el resto del código
+# Instalamos el navegador (las dependencias de sistema ya vienen en la imagen base)
+RUN playwright install chromium
+
+# Copiamos el resto de tus archivos
 COPY . .
 
-# Railway usa el puerto 8080 por defecto
+# Railway usa el puerto 8080
 ENV PORT=8080
 EXPOSE 8080
 
-# Comando para arrancar la app
+# Comando para arrancar
 CMD ["python", "app.py"]
