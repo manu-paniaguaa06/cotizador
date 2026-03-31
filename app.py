@@ -56,4 +56,8 @@ def exportar_pdf():
         return f"Error en el servidor: {str(e)}", 500
 
 if __name__ == '__main__':
-    app.run(debug=True, port=5000)
+    # Usamos el puerto que nos asigne el servidor, o el 5000 por defecto
+    import os
+    port = int(os.environ.get("PORT", 5000))
+    # Importante: host="0.0.0.0" para que sea accesible externamente
+    app.run(host="0.0.0.0", port=port)
