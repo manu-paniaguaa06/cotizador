@@ -6,7 +6,15 @@ app = Flask(__name__)
 
 def html_to_pdf(html_content):
     with sync_playwright() as p:
-        browser = p.chromium.launch(headless=True)
+        browser = p.chromium.launch(
+            headless=True,
+            args=[
+                '--no-sandbox', 
+                '--disable-setuid-sandbox', 
+                '--disable-dev-shm-usage', 
+                '--disable-gpu'
+            ]
+        )
         # 1. Definimos un viewport inicial que coincida con tu diseño (1000px)
         context = browser.new_context(viewport={'width': 1000, 'height': 800})
         page = context.new_page()
