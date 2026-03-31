@@ -1,35 +1,46 @@
 from flask import Flask, render_template, request, send_file
 from playwright.sync_api import sync_playwright
 import io
+import subprocess
 
 app = Flask(__name__)
 
 def html_to_pdf(html_content):
-    with sync_playwright() as p:
-        browser = p.chromium.launch(
-        headless=True,
-        args=['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage']
-        )
-        # 1. Definimos un viewport inicial que coincida con tu diseño (1000px)
-        context = browser.new_context(viewport={'width': 1000, 'height': 800})
-        page = context.new_page()
-        
-        page.set_content(html_content)
-        page.wait_for_timeout(1000)
-        
-        # 2. Medimos el contenido real
-        height = page.evaluate("() => document.documentElement.scrollHeight")
-        
-        # 3. Generamos el PDF forzando el ancho a 1000px (sin dejar aire a la derecha)
-        pdf_bytes = page.pdf(
-            width="1000px",
-            height=f"{height}px",
-            print_background=True,
-            margin={"top": "0px", "right": "0px", "bottom": "0px", "left": "0px"}
-        )
-        
-        browser.close()
-        return pdf_bytes
+    try:
+        with sync_playwright() as p:
+            browser = p.chromium.launch(
+            headless=True,
+            args=['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage']
+            )
+            # 1. Definimos un viewport inicial que coincida con tu diseño (1000px)
+            context = browser.new_context(viewport={'width': 1000, 'height': 800})
+            page = context.new_page()
+            
+            page.set_content(html_content)
+            page.wait_for_timeout(1000)
+            
+            # 2. Medimos el contenido real
+            height = page.evaluate("() => document.documentElement.scrollHeight")
+            
+            # 3. Generamos el PDF forzando el ancho a 1000px (sin dejar aire a la derecha)
+            pdf_bytes = page.pdf(
+                width="1000px",
+                height=f"{height}px",
+                print_background=True,
+                margin={"top": "0px", "right": "0px", "bottom": "0px", "left": "0px"}
+            )
+            
+            browser.close()
+            return pdf_bytes
+    except Exception as e:
+        # Si falla porque no encuentra el browser, intentamos instalarlo en caliente
+        if "Executable doesn't exist" in str(e):
+            print("Instalando Chromium en el contenedor...")
+            subprocess.run(["playwright", "install", "chromium"])
+            # Reintentamos una vez más después de instalar
+            return html_to_pdf(html_content)
+        else:
+            raise e
 
 @app.route('/')
 def index():
