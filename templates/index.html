@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Plantilla Cotización — vimaa</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700;9..40,900&family=DM+Serif+Display&display=swap" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<style>
+  /* Mantenemos tus estilos exactamente igual */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'DM Sans', sans-serif; background: #1a1a1a; display: flex; gap: 20px; padding: 20px; }
+  
+  /* PANEL DE CONTROL IZQUIERDO (Agregado para que funcione el programa) */
+  .admin-panel { width: 350px; background: #2a2a2a; padding: 20px; border-radius: 12px; color: white; height: fit-content; }
+  .agent-block { background: #333; padding: 10px; border-radius: 8px; margin-bottom: 10px; border-left: 3px solid #00d4ff; }
+  .admin-panel input { width: 100%; margin-bottom: 8px; padding: 8px; border-radius: 4px; border: none; }
+  .btn-add { width: 100%; padding: 10px; background: #444; color: white; border: none; cursor: pointer; margin-bottom: 10px; }
+  .btn-download { width: 100%; padding: 12px; background: #00d4ff; color: black; font-weight: bold; border: none; cursor: pointer; }
+
+  /* TU DISEÑO ORIGINAL (Sin tocar) */
+  .page { width: 1000px; min-height: 1200px; background: #ffffff; border-radius: 16px; margin: 0 auto; overflow: hidden; position: relative; z-index:0; padding: 60px; color: #1a1a1a; isolation: isolate; }
+  .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 40px; }
+  .vimaa-logo { font-size: 54px; font-weight: 900; letter-spacing: -2px; line-height: 1; }
+  .quote-title-box { text-align: right; }
+  .quote-title-box h1 { font-size: 42px; font-weight: 900; margin: 0; }
+  .quote-id { font-size: 20px; font-weight: 500; }
+  .client-info { font-size: 15px; margin-bottom: 40px; border-bottom: 2px solid #1a1a1a; padding-bottom: 10px; }
+  
+  table { width: 100%; border-collapse: collapse; margin-bottom: 30px; }
+  th { text-align: left; padding: 12px 5px; border-bottom: 2px solid #1a1a1a; font-size: 13px; text-transform: uppercase; }
+  td { padding: 12px 5px; border-bottom: 1px solid #f0f0f0; font-size: 14px; }
+  
+  .totals-box { margin-top: 20px; border-top: 2px solid #1a1a1a; padding-top: 10px; }
+  .row-total { font-weight: 900; font-size: 18px; }
+  .notes { font-size: 12px; color: #555; margin-top: 40px; line-height: 1.6; }
+  .payment-highlight { margin-top: 20px; font-weight: 700; font-size: 15px; }
+
+  .blobs {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: -1;
+    overflow: hidden;
+    }
+    .blob {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(62px);
+    }
+    .blob-tr1 { width:340px; height:220px; background: radial-gradient(circle at 40% 40%, #f4a98a, #e8758a); top:-90px; right:-70px; opacity:0.75; }
+    .blob-tr2 { width:200px; height:200px; background: radial-gradient(circle at 40% 40%, #c98fd4, #8aaee0); top:-40px; right:160px; opacity:0.45; }
+    .blob-tr3 { width:180px; height:120px; background: radial-gradient(circle, #f7d48a, #f4a060); top:-10px; right:-10px; opacity:0.55; }
+    .blob-bl1 { width:300px; height:220px; background: radial-gradient(circle at 50% 60%, #f4a98a, #e8758a); bottom:-80px; left:-60px; opacity:0.60; }
+    .blob-bl2 { width:200px; height:180px; background: radial-gradient(circle, #c98fd4, #8aaee0); bottom:-40px; left:160px; opacity:0.35; }
+    .blob-bl3 { width:160px; height:140px; background: radial-gradient(circle, #f7d48a, #f4a060); bottom:-20px; left:80px; opacity:0.40; }
+
+    .btn-delete {
+        color: #ff4d4d;
+        font-size: 10px;
+        cursor: pointer;
+        font-weight: bold;
+        text-transform: uppercase;
+        transition: 0.2s;
+    }
+
+    .btn-delete:hover {
+        color: #ff0000;
+        text-decoration: underline;
+    }
+
+    /* Ajuste opcional para el bloque del agente */
+    .agent-block {
+        position: relative;
+        padding-top: 15px;
+    }
+
+    @media print {
+    /* Ocultamos el panel de control y botones al imprimir */
+    .admin-panel, .btn-add, .btn-download {
+        display: none !important;
+    }
+
+    /* Ajustamos la hoja para que ocupe todo el espacio */
+    body {
+        background: white !important;
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+
+    .page {
+        width: 100% !important;
+        box-shadow: none !important;
+        border-radius: 0 !important;
+        margin: 0 !important;
+    }
+
+    * {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+}
+</style>
+</head>
+<body>
+
+  <aside class="admin-panel">
+    <h3>Configuración</h3>
+    <input type="text" id="in_cliente" placeholder="Nombre del Cliente" oninput="update()">
+    <input type="text" id="in_folio" placeholder="Folio" value="#IA-" oninput="update()">
+    <div id="agents-input-container"></div>
+    <button class="btn-add" onclick="addAgent()">+ Añadir Agente</button>
+    <label>Costos Fijos:</label>
+    <input type="number" id="in_fijos" value="4500" oninput="update()">
+    <button class="btn-download" onclick="downloadPDF()">Descargar PDF</button>
+  </aside>
+
+  <div id="capture" class="page">
+    <div class="blobs">
+        <div class="blob blob-tr1"></div>
+        <div class="blob blob-tr2"></div>
+        <div class="blob blob-tr3"></div>
+        <div class="blob blob-bl1"></div>
+        <div class="blob blob-bl2"></div>
+        <div class="blob blob-bl3"></div>
+    </div>
+    <div class="header">
+      <div class="header-left">
+        <p id="out_fecha" style="font-weight: 700; margin-bottom: 5px;"></p>
+        <div class="vimaa-logo">vimaa</div>
+      </div>
+      <div class="quote-title-box">
+        <h1>COTIZACIÓN</h1>
+        <div class="quote-id" id="out_folio"></div>
+      </div>
+    </div>
+
+    <div class="client-info">
+      Cliente / Empresa: <strong id="out_cliente"></strong>
+    </div>
+
+    <p style="width: 70%; font-size: 14px; margin-bottom: 40px; line-height: 1.5;">
+      Sistema inteligente para automatización de procesos empresariales, integración de herramientas digitales y optimización de operaciones mediante inteligencia artificial.
+      <br><br><small>Válido por 30 días</small>
+    </p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Detalle</th>
+          <th>Desarrollo</th>
+          <th>Mensualidad</th>
+          <th>Tokens In</th>
+          <th>Tokens Out</th>
+          <th>Call mins</th>
+          <th>Almacenamiento</th>
+        </tr>
+      </thead>
+      <tbody id="table-body">
+        </tbody>
+    </table>
+
+    <div class="totals-box">
+      <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+        <span>Subtotal</span>
+        <span id="out_subtotal"></span>
+      </div>
+      <div class="row-total" style="display: flex; justify-content: space-between;">
+        <span>Total (+16% IVA)</span>
+        <span id="out_total"></span>
+      </div>
+    </div>
+
+    <div class="notes">
+      <p>En caso de superar el número de tokens mensuales se cobrarán, en base a lo establecido en el contrato de prestación de servicios.</p>
+      <p>El costo fijo mensual, es obligatorio al contratar un agente cual sea.</p>
+      <p><strong>Tokens: UDM (M) Millones, entre input y output Mensuales.</strong></p>
+      <p>Todos los precios son MXN</p>
+    </div>
+
+  </div>
+
+  <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>
