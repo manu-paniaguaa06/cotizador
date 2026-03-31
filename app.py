@@ -8,7 +8,12 @@ def html_to_pdf(html_content):
     with sync_playwright() as p:
         browser = p.chromium.launch(
             headless=True,
-            args=['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage']
+            args=[
+                '--no-sandbox',
+                '--disable-setuid-sandbox',
+                '--disable-dev-shm-usage',
+                '--single-process' # Reduce el uso de RAM considerablemente
+            ]
         )
         # 1. Definimos un viewport inicial que coincida con tu diseño (1000px)
         context = browser.new_context(viewport={'width': 1000, 'height': 800})
@@ -60,7 +65,7 @@ def exportar_pdf():
 
 if __name__ == '__main__':
     import os
-    # Railway inyecta la variable PORT, si no existe usa 8080
+    # Railway inyecta automáticamente la variable PORT
     port = int(os.environ.get("PORT", 8080))
-    # host 0.0.0.0 es obligatorio para Railway
+    # DEBE SER 0.0.0.0 para que Railway pueda conectar con el contenedor
     app.run(host="0.0.0.0", port=port)
